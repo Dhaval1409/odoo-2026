@@ -3,49 +3,44 @@
 @tailwind utilities;
 
 :root {
-  --font-display: 'Space Grotesk', sans-serif;
-  --font-body: 'Inter', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  --background: #060913;
+  --foreground: #f8fafc;
 }
 
 body {
-  background-color: #0f1720;
-  color: #e2e8f0;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
-::selection {
-  background-color: #f5a623;
-  color: #0b1016;
+/* Premium Custom Utilities for a Winning Look */
+@layer components {
+  .premium-bg {
+    background: radial-gradient(circle at 50% -20%, #1e2640 0%, #060913 70%);
+  }
+  
+  .glass-card {
+    @apply bg-[#0d1527]/60 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-6 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)];
+  }
+
+  .glass-input {
+    @apply w-full bg-[#090f1d]/90 border border-slate-800 rounded-xl px-4 py-3 text-white font-sans text-sm tracking-wide transition-all duration-200 placeholder:text-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500/30;
+  }
+
+  .btn-gradient {
+    @apply w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 text-white font-medium px-5 py-3 rounded-xl text-sm transition-all duration-200 hover:opacity-95 active:scale-[0.98] shadow-[0_0_25px_rgba(6,182,212,0.3)];
+  }
 }
 
-.status-pill {
-  @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-mono uppercase tracking-wide;
+/* Custom Scrollbar for that polished touch */
+::-webkit-scrollbar {
+  width: 6px;
 }
-
-.card {
-  @apply rounded-lg border border-asphalt-700 bg-asphalt-800 p-5;
+::-webkit-scrollbar-track {
+  background: #060913;
 }
-
-.input {
-  @apply w-full rounded-md border border-asphalt-600 bg-asphalt-900 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-signal-amber focus:outline-none focus:ring-1 focus:ring-signal-amber;
-}
-
-.btn-primary {
-  @apply rounded-md bg-signal-amber px-4 py-2 text-sm font-semibold text-asphalt-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.btn-secondary {
-  @apply rounded-md border border-asphalt-600 px-4 py-2 text-sm font-medium text-slate-200 transition hover:border-signal-amber hover:text-signal-amber disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-.btn-danger {
-  @apply rounded-md border border-signal-red/50 px-4 py-2 text-sm font-medium text-signal-red transition hover:bg-signal-red/10 disabled:cursor-not-allowed disabled:opacity-50;
-}
-
-table.manifest th {
-  @apply border-b border-asphalt-600 px-3 py-2 text-left text-xs font-mono uppercase tracking-wider text-slate-400;
-}
-
-table.manifest td {
-  @apply border-b border-asphalt-700/60 px-3 py-2.5 text-sm;
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 10px;
 }
