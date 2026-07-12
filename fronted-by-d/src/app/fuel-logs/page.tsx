@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import AppShell from '@/components/AppShell';
-import { fuelApi, vehiclesApi, FuelLog, Vehicle } from '@/lib/api';
-import { errorMessage } from '@/lib/auth-context';
+import AppShell from '@/app/components/AppShell';
+import { fuelApi, vehiclesApi, FuelLog, Vehicle } from '@/app/lib/api';
+import { errorMessage } from '@/app/lib/auth-context';
 
 export default function FuelLogsPage() {
   const [logs, setLogs] = useState<FuelLog[]>([]);
@@ -44,84 +44,134 @@ export default function FuelLogsPage() {
 
   return (
     <AppShell>
-      <div className="mb-6 flex items-center justify-between">
+      {/* Module Header Section */}
+      <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 dark:border-slate-900 pb-5 gap-4">
         <div>
-          <p className="font-mono text-xs uppercase tracking-widest text-signal-slate">05 — Fuel</p>
-          <h1 className="font-display text-2xl font-bold text-white">Fuel Logs</h1>
+          <p className="font-mono text-xs uppercase tracking-widest text-cyan-600 dark:text-cyan-400">05 — Resource Allocation</p>
+          <h1 className="font-display text-3xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">Fuel Registry</h1>
         </div>
-        <button className="btn-primary" onClick={() => setShowForm((s) => !s)}>
-          {showForm ? 'Cancel' : '+ Log Fuel'}
+        <button 
+          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all flex items-center space-x-2 ${
+            showForm 
+              ? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700' 
+              : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md dark:shadow-[0_0_15px_rgba(6,182,212,0.25)] hover:opacity-95'
+          }`}
+          onClick={() => setShowForm((s) => !s)}
+        >
+          <span>{showForm ? 'Cancel Operation' : '+ Log Fuel Intake'}</span>
         </button>
       </div>
 
-      {error && <p className="mb-4 text-sm text-signal-red">{error}</p>}
-
-      {showForm && (
-        <form onSubmit={onSubmit} className="card mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <select
-            className="input"
-            required
-            value={form.vehicleId}
-            onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
-          >
-            <option value="">Select vehicle…</option>
-            {vehicles.map((v) => (
-              <option key={v.id} value={v.id}>
-                {v.registrationNo} — {v.model}
-              </option>
-            ))}
-          </select>
-          <input
-            className="input"
-            type="number"
-            step="0.01"
-            placeholder="Liters"
-            required
-            value={form.liters}
-            onChange={(e) => setForm({ ...form, liters: e.target.value })}
-          />
-          <input
-            className="input"
-            type="number"
-            placeholder="Cost (₹)"
-            required
-            value={form.cost}
-            onChange={(e) => setForm({ ...form, cost: e.target.value })}
-          />
-          <div className="sm:col-span-3">
-            <button type="submit" disabled={submitting} className="btn-primary">
-              {submitting ? 'Saving…' : 'Add fuel log'}
-            </button>
-          </div>
-        </form>
+      {/* Exception Error Handling Container */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl text-xs font-mono flex items-center space-x-2">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 dark:bg-red-400 shrink-0" />
+          <span>{error}</span>
+        </div>
       )}
 
-      <div className="card overflow-x-auto p-0">
+      {/* Glassmorphic Fuel Intake Input Form */}
+      {showForm && (
+        <div className="glass-card bg-white dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800/80 p-6 rounded-2xl mb-6 relative shadow-lg dark:shadow-none animate-[fadeIn_0.25s_ease-out]">
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+          <h3 className="text-sm font-mono text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Initialize Refueling Stream</h3>
+          
+          <form onSubmit={onSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+            <div className="relative">
+              <select
+                className="glass-input appearance-none cursor-pointer pr-10 text-slate-800 dark:text-slate-200"
+                required
+                value={form.vehicleId}
+                onChange={(e) => setForm({ ...form, vehicleId: e.target.value })}
+              >
+                <option value="" className="bg-white dark:bg-[#0b1329] text-slate-500">Target vehicle asset…</option>
+                {vehicles.map((v) => (
+                  <option key={v.id} value={v.id} className="bg-white dark:bg-[#0b1329] text-slate-900 dark:text-white">
+                    {v.registrationNo} — {v.model}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400 dark:text-slate-500">
+                <span className="text-[10px]">▼</span>
+              </div>
+            </div>
+
+            <div className="relative">
+              <input
+                className="glass-input pr-16"
+                type="number"
+                step="0.01"
+                placeholder="Volume Intake"
+                required
+                value={form.liters}
+                onChange={(e) => setForm({ ...form, liters: e.target.value })}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 font-mono text-slate-400 dark:text-slate-500 text-xs select-none">LITERS</span>
+            </div>
+
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 font-mono text-slate-400 dark:text-slate-500 text-sm select-none">₹</span>
+              <input
+                className="glass-input pl-8"
+                type="number"
+                placeholder="Total Cost"
+                required
+                value={form.cost}
+                onChange={(e) => setForm({ ...form, cost: e.target.value })}
+              />
+            </div>
+
+            <div className="sm:col-span-1">
+              <button type="submit" disabled={submitting} className="btn-gradient w-full py-3">
+                {submitting ? 'Recording Log...' : 'Commit Fuel Entry'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Master Telemetry Fuel Log Manifest Table */}
+      <div className="border border-slate-200 dark:border-slate-900 shadow-xl dark:shadow-2xl rounded-2xl overflow-hidden bg-white dark:bg-[#070d19]/40 backdrop-blur-md">
         {loading ? (
-          <p className="p-5 text-sm text-slate-500">Loading fuel logs…</p>
+          <div className="p-8 flex flex-col items-center justify-center space-y-2">
+            <div className="w-5 h-5 border-2 border-cyan-500 dark:border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            <p className="font-mono text-xs text-slate-400 dark:text-slate-500 uppercase tracking-wider">Syncing resource logs...</p>
+          </div>
         ) : logs.length === 0 ? (
-          <p className="p-5 text-sm text-slate-500">No fuel logs yet.</p>
+          <div className="p-8 text-center">
+            <p className="font-mono text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest">No fuel logs found in this tracking matrix.</p>
+          </div>
         ) : (
-          <table className="manifest w-full">
-            <thead>
-              <tr>
-                <th>Vehicle</th>
-                <th>Liters</th>
-                <th>Cost</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map((f) => (
-                <tr key={f.id}>
-                  <td className="font-mono text-signal-amber">{f.vehicle?.registrationNo || f.vehicleId}</td>
-                  <td>{f.liters} L</td>
-                  <td>₹{f.cost.toLocaleString()}</td>
-                  <td className="text-slate-400">{new Date(f.date).toLocaleDateString()}</td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse font-sans text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 dark:border-slate-900 bg-slate-100/60 dark:bg-slate-950/40 text-slate-500 dark:text-slate-400 font-mono text-[11px] uppercase tracking-wider">
+                  <th className="p-4 font-medium">Vehicle Asset</th>
+                  <th className="p-4 font-medium">Volume Dispensed</th>
+                  <th className="p-4 font-medium">Cost Aggregate</th>
+                  <th className="p-4 font-medium">Timestamp</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-900/40 text-slate-700 dark:text-slate-300">
+                {logs.map((f) => (
+                  <tr key={f.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/20 transition-colors group">
+                    <td className="p-4 font-mono text-xs font-bold text-cyan-600 dark:text-cyan-400 tracking-wide group-hover:text-cyan-500 dark:group-hover:text-cyan-300 transition-colors">
+                      {f.vehicle?.registrationNo || f.vehicleId}
+                    </td>
+                    <td className="p-4 font-mono text-slate-600 dark:text-slate-300">
+                      {f.liters.toFixed(2)} <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">L</span>
+                    </td>
+                    <td className="p-4 font-mono font-bold text-slate-900 dark:text-white text-sm">
+                      ₹{f.cost.toLocaleString()}
+                    </td>
+                    <td className="p-4 font-mono text-xs text-slate-400 dark:text-slate-500">
+                      {new Date(f.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </AppShell>
