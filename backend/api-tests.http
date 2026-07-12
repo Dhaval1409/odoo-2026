@@ -1,0 +1,81 @@
+### Fleet Management API - REST Client test suite
+### Requires the "REST Client" VS Code extension (humao.rest-client)
+### Make sure your server is running first: npm run dev
+
+@baseUrl = http://localhost:5000/api
+
+
+### 1. Health check-ish: get all vehicles (should return [] on a fresh db)
+GET {{baseUrl}}/vehicles
+
+
+### 2. Create a vehicle
+# @name createVehicle
+POST {{baseUrl}}/vehicles
+Content-Type: application/json
+
+{
+  "registrationNo": "GJ01AB1234",
+  "model": "Tata Ace",
+  "type": "Mini Truck",
+  "maxLoadCapacityKg": 750,
+  "odometer": 1200,
+  "acquisitionCost": 550000
+}
+
+###
+@vehicleId = {{createVehicle.response.body.id}}
+
+
+### 3. Get all vehicles again (should now show the one you just created)
+GET {{baseUrl}}/vehicles
+
+
+### 4. Create a driver
+# @name createDriver
+POST {{baseUrl}}/drivers
+Content-Type: application/json
+
+{
+  "name": "Rakesh Patel",
+  "licenseNo": "GJ0520230001234",
+  "category": "LMV",
+  "licenseExpiry": "2028-01-01",
+  "contactNo": "9876543210"
+}
+
+###
+@driverId = {{createDriver.response.body.id}}
+
+
+### 5. Dispatch a trip (uses the vehicle + driver created above)
+# @name dispatchTrip
+POST {{baseUrl}}/trips/dispatch
+Content-Type: application/json
+
+{
+  "source": "Ahmedabad",
+  "destination": "Surat",
+  "cargoWeightKg": 400,
+  "plannedDistance": 265,
+  "vehicleId": "{{vehicleId}}",
+  "driverId": "{{driverId}}"
+}
+
+###
+@tripId = {{dispatchTrip.response.body.id}}
+
+
+### 6. Complete the trip
+POST {{baseUrl}}/trips/{{tripId}}/complete
+Content-Type: application/json
+
+{
+  "finalOdometer": 1465,
+  "fuelConsumed": 25.5,
+  "fuelCost": 2400
+}
+
+
+### 7. Financial analytics / KPIs
+GET {{baseUrl}}/financials/analytics
