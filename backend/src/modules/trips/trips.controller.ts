@@ -1,6 +1,19 @@
 import { Request, Response } from 'express';
 import prisma from '../../config/prisma';
 
+// GET /api/trips
+export const listTrips = async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const trips = await prisma.trip.findMany({
+      include: { vehicle: true, driver: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    res.status(200).json(trips);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const dispatchTrip = async (req: Request, res: Response): Promise<void> => {
   try {
     const { source, destination, cargoWeightKg, plannedDistance, vehicleId, driverId } = req.body;
@@ -51,10 +64,18 @@ export const completeTrip = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
+    const vehicle = await prisma.vehicle.findUnique({ where: { id: trip.vehicleId } });
+    if (!vehicle) {
+      res.status(404).json({ error: 'Associated vehicle not found.' });
+      return;
+    }
+
+    const actualDistance = finalOdometer - vehicle.odometer;
+
     await prisma.$transaction(async (tx: any) => {
       await tx.trip.update({
         where: { id },
-        data: { status: 'COMPLETED', actualDistance: finalOdometer, fuelConsumed }
+        data: { status: 'COMPLETED', actualDistance, fuelConsumed }
       });
       await tx.vehicle.update({
         where: { id: trip.vehicleId },
@@ -73,4 +94,42 @@ export const completeTrip = async (req: Request, res: Response): Promise<void> =
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
-};  
+};
+
+// POST /api/trips/:id/cancel
+export const cancelTrip = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const trip = await prisma.trip.findUnique({ where: { id } });
+    if (!trip) {
+      res.status(404).json({ error: 'Trip not found.' });
+      return;
+    }
+    if (trip.status !== 'DISPATCHED' && trip.status !== 'DRAFT') {
+      res.status(400).json({ error: `Cannot cancel a trip with status ${trip.status}.` });
+      return;
+    }
+
+    const wasDispatched = trip.status === 'DISPATCHED';
+
+    const updatedTrip = await prisma.$transaction(async (tx: any) => {
+      const cancelled = await tx.trip.update({
+        where: { id },
+        data: { status: 'CANCELLED' },
+      });
+
+      // Only restore statuses if the vehicle/driver were actually locked to ON_TRIP
+      if (wasDispatched) {
+        await tx.vehicle.update({ where: { id: trip.vehicleId }, data: { status: 'AVAILABLE' } });
+        await tx.driver.update({ where: { id: trip.driverId }, data: { status: 'AVAILABLE' } });
+      }
+
+      return cancelled;
+    });
+
+    res.status(200).json(updatedTrip);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
+};
